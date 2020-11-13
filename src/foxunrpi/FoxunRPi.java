@@ -14,6 +14,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileOutputStream;
+import java.io.File;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Properties;
@@ -31,6 +33,7 @@ public class FoxunRPi {
        
         Properties prop = new Properties();
         String fileName = "/home/po/app.properties";
+        //String fileName = "D:\\Projects\\FoxunRPi-1\\src\\foxunrpi\\app.properties";
         InputStream stream = null;
         
         try {
@@ -46,6 +49,7 @@ public class FoxunRPi {
         int switchPort = Integer.parseInt(prop.getProperty("SwitchPort", "-1"));
 
         System.out.println("Switch: " + switchIp + ":" + switchPort);
+        System.out.println("DefaultInput: " + defaultInput);  
         
         final GpioController gpio = GpioFactory.getInstance();
         final GpioPinDigitalInput input1 = gpio.provisionDigitalInputPin(RaspiPin.GPIO_25, PinPullResistance.PULL_DOWN);
@@ -69,6 +73,17 @@ public class FoxunRPi {
             if(currentInput > 0 && currentInput != previousInput){
                 client.RouteToAllOutputs(currentInput);
                 previousInput = currentInput;
+                prop.setProperty("DefaultInput", currentInput);
+                try{
+                    File file = new File(fileName);
+                    FileOutputStream fileOut = new FileOutputStream(file);
+                    prop.store(fileOut, null);
+                    fileOut.close();
+                }
+                catch (Exception ex) {
+                    System.out.println(ex);
+                    return;
+                }
             }
         }
     }
